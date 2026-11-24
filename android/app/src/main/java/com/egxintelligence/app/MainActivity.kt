@@ -14,6 +14,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +53,7 @@ private fun EgxApp() {
     var arabic by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Security?>(null) }
     MaterialTheme(colorScheme = darkColorScheme(primary = Teal, background = Navy, surface = Panel)) {
+        CompositionLocalProvider(LocalLayoutDirection provides if (arabic) LayoutDirection.Rtl else LayoutDirection.Ltr) {
         Scaffold(
             containerColor = Navy,
             topBar = {
@@ -57,13 +61,13 @@ private fun EgxApp() {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
                             Text(if (arabic) "ذكاء البورصة المصرية" else "EGX INTELLIGENCE", color = Gold, fontWeight = FontWeight.Bold, letterSpacing = 1.4.sp)
-                            Text("WHITE-LABEL INVESTOR EXPERIENCE", color = Muted, fontSize = 10.sp)
+                            Text(if (arabic) "منصة استثمارية قابلة لتخصيص العلامة التجارية" else "WHITE-LABEL INVESTOR EXPERIENCE", color = Muted, fontSize = 10.sp)
                         }
                         TextButton(onClick = { arabic = !arabic }) { Text(if (arabic) "EN" else "عربي") }
                     }
                     Spacer(Modifier.height(10.dp))
                     Text(if (arabic) "منصة المستثمر" else "Investor workspace", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-                    Text("Market overview · DEMO DATA", color = Muted, fontSize = 11.sp)
+                    Text(if (arabic) "نظرة عامة على السوق · بيانات تجريبية" else "Market overview · DEMO DATA", color = Muted, fontSize = 11.sp)
                 }
             },
             bottomBar = {
@@ -78,7 +82,7 @@ private fun EgxApp() {
                                 "Research" -> Icons.Default.Article
                                 else -> Icons.Default.Person
                             }, contentDescription = item) },
-                            label = { Text(item, fontSize = 9.sp) },
+                            label = { Text(if (arabic) mapOf("Home" to "الرئيسية", "Markets" to "الأسواق", "Portfolio" to "المحفظة", "Research" to "الأبحاث", "Account" to "الحساب")[item]!! else item, fontSize = 9.sp) },
                             colors = NavigationBarItemDefaults.colors(selectedIconColor = Teal, selectedTextColor = Teal, indicatorColor = Color(0xFF173B42), unselectedIconColor = Muted, unselectedTextColor = Muted)
                         )
                     }
@@ -86,11 +90,11 @@ private fun EgxApp() {
             }
         ) { padding ->
             when (tab) {
-                "Home" -> Home(padding) { tab = "Markets" }
-                "Markets" -> Markets(padding, query, { query = it }) { selected = it }
-                "Portfolio" -> Portfolio(padding)
-                "Research" -> Research(padding)
-                else -> Account(padding)
+                "Home" -> Home(padding, arabic) { tab = "Markets" }
+                "Markets" -> Markets(padding, query, { query = it }, arabic) { selected = it }
+                "Portfolio" -> Portfolio(padding, arabic)
+                "Research" -> Research(padding, arabic)
+                else -> Account(padding, arabic)
             }
         }
         selected?.let { item ->
@@ -98,8 +102,9 @@ private fun EgxApp() {
                 onDismissRequest = { selected = null }, containerColor = Panel,
                 title = { Text("${item.symbol} · ${item.name}") },
                 text = { Text("Illustrative price EGP ${item.price} (${item.change}). Production details require licensed market data and verified source timestamps.") },
-                confirmButton = { TextButton(onClick = { selected = null }) { Text("Close") } }
+                confirmButton = { TextButton(onClick = { selected = null }) { Text(if (arabic) "إغلاق" else "Close") } }
             )
+        }
         }
     }
 }
@@ -118,39 +123,39 @@ private fun Metric(title: String, value: String, modifier: Modifier = Modifier) 
 }
 @Composable
 private fun DemoNote() {
-    Text("DEMO ONLY: all figures are fictional. No live EGX feed, investor account or brokerage execution is connected.", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(vertical = 18.dp))
+    Text(if (LocalLayoutDirection.current == LayoutDirection.Rtl) "للعرض فقط: جميع الأرقام افتراضية. لا يوجد اتصال ببيانات EGX المباشرة أو حساب استثماري أو تنفيذ تداول." else "DEMO ONLY: all figures are fictional. No live EGX feed, investor account or brokerage execution is connected.", color = Muted, fontSize = 10.sp, modifier = Modifier.padding(vertical = 18.dp))
 }
 @Composable
-private fun Home(padding: PaddingValues, onMarkets: () -> Unit) {
+private fun Home(padding: PaddingValues, arabic: Boolean, onMarkets: () -> Unit) {
     Page(padding) {
         Spacer(Modifier.height(16.dp))
         Column(Modifier.fillMaxWidth().background(Color(0xFF173A4B), RoundedCornerShape(20.dp)).padding(18.dp)) {
-            Text("EGX30 · DEMO INDEX", color = Muted, fontSize = 11.sp)
+            Text(if (arabic) "EGX30 · مؤشر تجريبي" else "EGX30 · DEMO INDEX", color = Muted, fontSize = 11.sp)
             Text("31,482.65", fontSize = 30.sp, fontWeight = FontWeight.Bold)
             Text("▲ 1.24%  +385.20 pts", color = Up, fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(18.dp))
-            Text("SAMPLE DATA · NOT LIVE", color = Gold, fontSize = 10.sp)
+            Text(if (arabic) "بيانات افتراضية · ليست مباشرة" else "SAMPLE DATA · NOT LIVE", color = Gold, fontSize = 10.sp)
         }
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Metric("Turnover · demo", "EGP 2.84B", Modifier.weight(1f))
-            Metric("Transactions · demo", "84.2K", Modifier.weight(1f))
+            Metric(if (arabic) "قيمة التداول · تجريبي" else "Turnover · demo", "EGP 2.84B", Modifier.weight(1f))
+            Metric(if (arabic) "عدد العمليات · تجريبي" else "Transactions · demo", "84.2K", Modifier.weight(1f))
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Market leaders", fontSize = 17.sp, fontWeight = FontWeight.Bold)
-            TextButton(onClick = onMarkets) { Text("View all") }
+            Text(if (arabic) "الأسهم الأكثر نشاطاً" else "Market leaders", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            TextButton(onClick = onMarkets) { Text(if (arabic) "عرض الكل" else "View all") }
         }
         securities.take(3).forEach { SecurityItem(it) {} }
-        Metric("Latest disclosure · demo", "Illustrative issuer filing with source and timestamp to be connected.")
+        Metric(if (arabic) "أحدث إفصاح · تجريبي" else "Latest disclosure · demo", if (arabic) "إفصاح توضيحي مع ضرورة ربط المصدر والتوقيت." else "Illustrative issuer filing with source and timestamp to be connected.")
         DemoNote()
     }
 }
 @Composable
-private fun Markets(padding: PaddingValues, query: String, onQuery: (String) -> Unit, onSelect: (Security) -> Unit) {
+private fun Markets(padding: PaddingValues, query: String, onQuery: (String) -> Unit, arabic: Boolean, onSelect: (Security) -> Unit) {
     Page(padding) {
         Spacer(Modifier.height(16.dp))
-        Text("MARKETS & SECURITIES", color = Teal, fontWeight = FontWeight.Bold)
-        OutlinedTextField(query, onQuery, Modifier.fillMaxWidth().padding(vertical = 12.dp), placeholder = { Text("Search symbol or company") }, singleLine = true)
+        Text(if (arabic) "الأسواق والأوراق المالية" else "MARKETS & SECURITIES", color = Teal, fontWeight = FontWeight.Bold)
+        OutlinedTextField(query, onQuery, Modifier.fillMaxWidth().padding(vertical = 12.dp), placeholder = { Text(if (arabic) "ابحث بالرمز أو اسم الشركة" else "Search symbol or company") }, singleLine = true)
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(securities.filter { it.symbol.contains(query, true) || it.name.contains(query, true) }) { item ->
                 SecurityItem(item) { onSelect(item) }
@@ -173,12 +178,12 @@ private fun SecurityItem(item: Security, onClick: () -> Unit) {
     }
 }
 @Composable
-private fun Portfolio(padding: PaddingValues) {
+private fun Portfolio(padding: PaddingValues, arabic: Boolean) {
     Page(padding) {
         Spacer(Modifier.height(18.dp))
-        Metric("Portfolio value · demo", "EGP 248,650.00")
+        Metric(if (arabic) "قيمة المحفظة · تجريبي" else "Portfolio value · demo", "EGP 248,650.00")
         Text("▲ 4.82% · +11,450 EGP", color = Up, modifier = Modifier.padding(top = 10.dp))
-        listOf("Banks" to "38%", "Real estate" to "27%", "Telecom" to "20%", "Other" to "15%").forEach {
+        (if (arabic) listOf("البنوك" to "38%", "العقارات" to "27%", "الاتصالات" to "20%", "أخرى" to "15%") else listOf("Banks" to "38%", "Real estate" to "27%", "Telecom" to "20%", "Other" to "15%")).forEach {
             Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(it.first, color = Muted); Text(it.second, fontWeight = FontWeight.Bold)
             }
@@ -188,23 +193,23 @@ private fun Portfolio(padding: PaddingValues) {
     }
 }
 @Composable
-private fun Research(padding: PaddingValues) {
+private fun Research(padding: PaddingValues, arabic: Boolean) {
     Page(padding) {
         Spacer(Modifier.height(18.dp))
-        Text("RESEARCH & DISCLOSURES", color = Teal, fontWeight = FontWeight.Bold)
-        Metric("Issuer disclosure · demo", "Original source and publication timestamp required.")
-        Metric("Corporate action · demo", "Dividend and shareholder notices.")
-        Metric("Market update · demo", "Published statistics with source attribution.")
+        Text(if (arabic) "الأبحاث والإفصاحات" else "RESEARCH & DISCLOSURES", color = Teal, fontWeight = FontWeight.Bold)
+        Metric(if (arabic) "إفصاح الشركة · تجريبي" else "Issuer disclosure · demo", if (arabic) "يلزم إظهار المصدر الأصلي وتوقيت النشر." else "Original source and publication timestamp required.")
+        Metric(if (arabic) "إجراءات الشركات · تجريبي" else "Corporate action · demo", if (arabic) "إعلانات التوزيعات والمساهمين." else "Dividend and shareholder notices.")
+        Metric(if (arabic) "تحديث السوق · تجريبي" else "Market update · demo", if (arabic) "إحصاءات منشورة مع توثيق المصدر." else "Published statistics with source attribution.")
         DemoNote()
     }
 }
 @Composable
-private fun Account(padding: PaddingValues) {
+private fun Account(padding: PaddingValues, arabic: Boolean) {
     Page(padding) {
         Spacer(Modifier.height(18.dp))
-        Text("ACCOUNT & PREFERENCES", color = Teal, fontWeight = FontWeight.Bold)
-        Metric("Demo investor", "Unverified demonstration account")
-        listOf("Security & devices", "Fees and risk disclosures", "Help and technical complaints", "White-label configuration").forEach {
+        Text(if (arabic) "الحساب والتفضيلات" else "ACCOUNT & PREFERENCES", color = Teal, fontWeight = FontWeight.Bold)
+        Metric(if (arabic) "مستخدم تجريبي" else "Demo investor", if (arabic) "حساب تجريبي غير موثق" else "Unverified demonstration account")
+        (if (arabic) listOf("الأمان والأجهزة", "الرسوم وإفصاحات المخاطر", "المساعدة والشكاوى الفنية", "إعدادات العلامة التجارية") else listOf("Security & devices", "Fees and risk disclosures", "Help and technical complaints", "White-label configuration")).forEach {
             Text(it, Modifier.fillMaxWidth().padding(vertical = 16.dp), fontWeight = FontWeight.SemiBold)
             HorizontalDivider(color = Color(0xFF263B52))
         }
